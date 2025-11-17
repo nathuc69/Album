@@ -1,27 +1,65 @@
-package main
+// package main
 
-import (
-	"fmt"
-	"os"
+// import (
+// 	"album/backend/utils"
+// 	"database/sql"
+// 	"fmt"
+// 	"log"
+// 	"os"
+// 	"path/filepath"
 
-	"album/backend/utils"
-)
+// 	_ "github.com/mattn/go-sqlite3" // met le driver de ton SGBD
+// )
 
-func main() {
-	path := "photos/IMG_0125.JPEG"
+// func main() {
+// 	// --- Ton dossier contenant les photos ---
+// 	photosDir := "./photos"
 
-	// Check that the file exists (common cause of failures)
-	if _, err := os.Stat(path); err != nil {
-		fmt.Println("file stat error:", err)
-	}
+// 	// --- Connexion BDD (ici sqlite en exemple) ---
+// 	db, err := sql.Open("sqlite3", "./album.db")
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	defer db.Close()
 
-	photo, err := utils.ExtractMeta(path)
-	if err != nil {
-		fmt.Println("ExtractMeta error:", err)
-		return
-	}
+// 	// --- Parcours du dossier ---
+// 	err = filepath.Walk(photosDir, func(path string, info os.FileInfo, err error) error {
+// 		if err != nil {
+// 			return err
+// 		}
 
-	// Print the full struct and specific fields for debugging
-	fmt.Printf("photo: %+v\n", photo)
-	fmt.Println("CameraMake:", photo.CameraMake)
-}
+// 		// Ignorer les dossiers
+// 		if info.IsDir() {
+// 			return nil
+// 		}
+
+// 		// Garde uniquement les images
+// 		ext := filepath.Ext(info.Name())
+// 		switch ext {
+// 		case ".jpg", ".jpeg", ".png":
+
+// 			if _, err := os.Stat(path); err != nil {
+// 				fmt.Println("file stat error:", err)
+// 			}
+
+// 			photo, err := utils.ExtractMeta(path)
+// 			if err != nil {
+// 				fmt.Println("ExtractMeta error:", err)
+// 				return err
+// 			}
+// 			err = PhotosService.AddPhotoToDB(db, path, photo)
+// 			if err != nil {
+// 				return err
+// 			}
+// 			fmt.Println("Import:", path)
+// 		}
+
+// 		return nil
+// 	})
+
+// 	if err != nil {
+// 		log.Fatal("Erreur scan dossier:", err)
+// 	}
+
+// 	fmt.Println("📸 Import terminé !")
+// }
