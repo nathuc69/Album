@@ -1,147 +1,26 @@
-// package utils
-
-// import (
-// 	"album/backend/internal/domain"
-// 	"os"
-
-// 	"github.com/rwcarlsen/goexif/exif"
-// 	"github.com/rwcarlsen/goexif/tiff"
-// )
-
-// func safeTagString(t *tiff.Tag) string {
-// 	if t == nil {
-// 		return ""
-// 	}
-
-// 	// StringVal() est SAFE — ne panique jamais
-// 	v, err := t.StringVal()
-// 	if err == nil {
-// 		return v
-// 	}
-
-// 	return ""
-// }
-
-// func ExtractMeta(path string) (*domain.Photo, error) {
-
-// 	f, err := os.Open(path)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer f.Close()
-
-// 	x, err := exif.Decode(f)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	var (
-// 		dateStr        string
-// 		camMakeStr     string
-// 		camModelStr    string
-// 		altitudeStr    string
-// 		orientationStr string
-// 		lat, long      float64
-// 	)
-
-// 	if d, err := x.DateTime(); err == nil {
-// 		dateStr = d.String()
-// 	}
-
-// 	if t, err := x.Get(exif.Make); err == nil {
-// 		camMakeStr = safeTagString(t)
-// 	}
-// 	if t, err := x.Get(exif.Model); err == nil {
-// 		camModelStr = safeTagString(t)
-// 	}
-// 	if t, err := x.Get(exif.GPSAltitude); err == nil {
-// 		altitudeStr = safeTagString(t)
-// 	}
-// 	if t, err := x.Get(exif.Orientation); err == nil {
-// 		orientationStr = safeTagString(t)
-// 	}
-
-// 	if la, lo, err := x.LatLong(); err == nil {
-// 		lat = la
-// 		long = lo
-// 	}
-
-// 	return &domain.Photo{
-// 		DateTaken:   dateStr,
-// 		CameraMake:  camMakeStr,
-// 		CameraModel: camModelStr,
-// 		Latitude:    lat,
-// 		Longitude:   long,
-// 		Altitude:    altitudeStr,
-// 		Orientation: orientationStr,
-// 	}, nil
-// }
-
 package utils
 
 import (
 	"album/backend/internal/domain"
+	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/rwcarlsen/goexif/exif"
 	"github.com/rwcarlsen/goexif/tiff"
 )
 
-// safeTagString retourne la valeur d'un tag EXIF en toute sécurité
+// safeTagString retourne la valeur d'un tag EXIF sans panique
 func safeTagString(t *tiff.Tag) string {
 	if t == nil {
 		return ""
 	}
-	val, err := t.StringVal() // NE PANIC JAMAIS
+	val, err := t.StringVal()
 	if err != nil {
 		return ""
 	}
 	return val
-}
-
-// ExtractMeta extrait les métadonnées EXIF d'une photo et les retourne sous forme de Photo
-func ExtractMeta(path string) (*domain.Photo, error) {
-	f, err := os.Open(path)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	x, err := exif.Decode(f)
-	if err != nil {
-		// Pas d'EXIF ? On retourne une photo vide mais pas de panic
-		return &domain.Photo{
-			Filename: path,
-			Path:     path,
-		}, nil
-	}
-
-	dateStr := ""
-	if d, err := x.DateTime(); err == nil {
-		dateStr = d.String()
-	}
-
-	camMakeStr := safeTagString(getTag(x, exif.Make))
-	camModelStr := safeTagString(getTag(x, exif.Model))
-	altitudeStr := safeTagString(getTag(x, exif.GPSAltitude))
-	orientationStr := safeTagString(getTag(x, exif.Orientation))
-
-	lat, long := 0.0, 0.0
-	if la, lo, err := x.LatLong(); err == nil {
-		lat, long = la, lo
-	}
-
-	return &domain.Photo{
-		Filename:    path,
-		Path:        path,
-		DateTaken:   dateStr,
-		CameraMake:  camMakeStr,
-		CameraModel: camModelStr,
-		Altitude:    altitudeStr,
-		Orientation: orientationStr,
-		Latitude:    lat,
-		Longitude:   long,
-	}, nil
 }
 
 // getTag récupère un tag EXIF ou nil si absent
@@ -151,4 +30,82 @@ func getTag(x *exif.Exif, field exif.FieldName) *tiff.Tag {
 		return nil
 	}
 	return t
+}
+
+// ExtractMeta récupère les métadonnées EXIF pour un fichier donné
+func ExtractMeta(path string) (*domain.Photo, error) {
+	ext := strings.ToLower(filepath.Ext(path))
+	photo := &domain.Photo{
+		Filename: filepath.Base(path),
+		Path:     path,
+	}
+
+	switch ext {
+	case ".jpg", ".jpeg", ".tiff", ".JPG", ".JPEG", ".TIFF":
+		f, err := os.Open(path)
+		if err != nil {
+			return photo, err
+		}
+		defer f.Close()
+
+		x, err := exif.Decode(f)
+		if err != nil {
+			// Pas d'EXIF : retourne quand même photo minimale
+			return photo, nil
+		}
+
+		if d, err := x.DateTime(); err == nil {
+			photo.DateTaken = d.String()
+		}
+		photo.CameraMake = safeTagString(getTag(x, exif.Make))
+		photo.CameraModel = safeTagString(getTag(x, exif.Model))
+		photo.Altitude = safeTagString(getTag(x, exif.GPSAltitude))
+		photo.Orientation = safeTagString(getTag(x, exif.Orientation))
+		if la, lo, err := x.LatLong(); err == nil {
+			photo.Latitude = la
+			photo.Longitude = lo
+		}
+
+	case ".heic":
+		// TODO: Ajouter une lib go-heif si tu veux récupérer metadata HEIC
+		// Exemple : https://pkg.go.dev/github.com/pixiv/go-heif
+	case ".png":
+		// Les PNG n'ont quasiment jamais d'EXIF, on peut ignorer
+	default:
+		// Fichiers non-supportés
+		return nil, nil
+	}
+
+	return photo, nil
+}
+
+// WalkFolder parcourt un dossier et extrait toutes les métadonnées
+func WalkFolder(folderPath string) ([]*domain.Photo, error) {
+	var photos []*domain.Photo
+
+	err := filepath.Walk(folderPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			// Ne pas arrêter le Walk si un fichier est inaccessible
+			fmt.Println("Warning:", err)
+			return nil
+		}
+		if info.IsDir() {
+			return nil
+		}
+
+		photo, err := ExtractMeta(path)
+		if err != nil {
+			fmt.Println("Erreur lors de l'extraction :", path, err)
+			return nil
+		}
+		if photo != nil {
+			photos = append(photos, photo)
+		}
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+	return photos, nil
 }

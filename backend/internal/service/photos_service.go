@@ -16,6 +16,6 @@ func (s *photosService) AddPhotos(filepath string, photo *domain.Photo) error {
 	return s.repo.AddPhotos(filepath, photo)
 }
 
-func (s *photosService) GetAllPhotos(id string) ([]*domain.Photo, error) {
-	return s.repo.GetAllPhotos(id)
+func (s *photosService) GetAllPhotos() ([]*domain.Photo, error) {
+	return s.repo.GetAllPhotos()
 }

@@ -15,7 +15,7 @@ func NewPhotosHandler(service domain.PhotosService) *PhotosHandler {
 }
 
 func (h *PhotosHandler) GetAllPhotos(w http.ResponseWriter, r *http.Request) {
-	photos, err := h.Service.GetAllPhotos("1")
+	photos, err := h.Service.GetAllPhotos()
 	if err != nil {
 		http.Error(w, "Error retrieving photos: "+err.Error(), http.StatusInternalServerError)
 		return

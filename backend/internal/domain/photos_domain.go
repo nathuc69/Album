@@ -15,10 +15,11 @@ type Photo struct {
 
 type PhotosRepository interface {
 	AddPhotos(filepath string, photo *Photo) error
-	GetAllPhotos(id string) ([]*Photo, error)
+	GetAllPhotos() ([]*Photo, error)
 }
 
 type PhotosService interface {
 	AddPhotos(filepath string, photo *Photo) error
-	GetAllPhotos(id string) ([]*Photo, error)
+	// 	GetAllPhotos(id string) ([]*Photo, error)
+	GetAllPhotos() ([]*Photo, error)
 }

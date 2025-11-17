@@ -22,20 +22,47 @@ func (r *photosRepository) AddPhotos(filepath string, photo *domain.Photo) error
 	return nil
 }
 
-func (r *photosRepository) GetAllPhotos(id string) ([]*domain.Photo, error) {
-	row, err := r.db.Query("SELECT id, filename, filepath, date_taken, camera_make, camera_model, latitude, longitude FROM photos WHERE id = ?", id)
+func (r *photosRepository) GetAllPhotos() ([]*domain.Photo, error) {
+	// Requête pour récupérer toutes les photos
+	rows, err := r.db.Query(`
+        SELECT 
+            id, 
+            filename, 
+            filepath, 
+            date_taken, 
+            camera_make, 
+            camera_model, 
+            latitude, 
+            longitude
+        FROM photos
+    `)
 	if err != nil {
 		return nil, err
 	}
-	defer row.Close()
+	defer rows.Close()
 
 	var photos []*domain.Photo
-	for row.Next() {
+	for rows.Next() {
 		var photo domain.Photo
-		if err := row.Scan(&photo.ID, &photo.Filename, &photo.Path, &photo.DateTaken, &photo.CameraMake, &photo.CameraModel, &photo.Latitude, &photo.Longitude); err != nil {
+		if err := rows.Scan(
+			&photo.ID,
+			&photo.Filename,
+			&photo.Path,
+			&photo.DateTaken,
+			&photo.CameraMake,
+			&photo.CameraModel,
+			&photo.Latitude,
+			&photo.Longitude,
+		); err != nil {
 			return nil, err
 		}
 		photos = append(photos, &photo)
 	}
+
+	// Vérifie si une erreur est survenue lors de l'itération
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return photos, nil
 }
