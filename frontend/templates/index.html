@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./asset/index.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Typography for "Naturel & intime" -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:wght@400;700&family=Nunito:wght@300;400;600&family=Shadows+Into+Light&display=swap" rel="stylesheet">
+    <title>Album Photo</title>
+</head>
+<body>
+    <!-- Header -->
+    <header class="navbar">
+        <div class="navbar-container">
+            <h1 class="logo">📸 Album</h1>
+            <nav class="nav-links">
+                <a href="#" class="nav-link active">Galerie</a>
+                <a href="#" class="nav-link">À propos</a>
+                <a href="#" class="nav-link">Contact</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h2 class="hero-title">Mes Meilleures Photos</h2>
+            <p class="hero-subtitle">Découvrez ma collection de clichés</p>
+        </div>
+    </section>
+
+    <!-- Photos Section -->
+    <section id="photos-section" class="photos-section">
+        <div id="photos-container" class="photos-container"></div>
+        <button class="more-photos" type="button">Charger plus de photos ↓</button>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Album Photo. Tous droits réservés.</p>
+    </footer>
+
+    <script type="module">
+        import { DisplayData } from '../js/GetData.js';
+        DisplayData();
+    </script>
+</body>
+</html>
